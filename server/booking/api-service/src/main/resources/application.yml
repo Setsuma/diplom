@@ -1,0 +1,36 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: api-service
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/booking_db}
+    username: ${SPRING_DATASOURCE_USERNAME:booking_user}
+    password: ${SPRING_DATASOURCE_PASSWORD:booking_password}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_AUTH_SERVER_URL:http://keycloak:8080}/realms/${KEYCLOAK_REALM:booking}
+          jwk-set-uri: ${KEYCLOAK_AUTH_SERVER_URL:http://keycloak:8080}/realms/${KEYCLOAK_REALM:booking}/protocol/openid-connect/certs
+
+keycloak:
+  auth-server-url: ${KEYCLOAK_AUTH_SERVER_URL:http://keycloak:8080}
+  realm: ${KEYCLOAK_REALM:booking}
+  resource: ${KEYCLOAK_RESOURCE:booking-app}
+  bearer-only: true
+  credentials:
+    secret: ${KEYCLOAK_SECRET:5dIxYEao2nhTHYrfLdTjYVymblczkJ1N}
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    org.springframework.web: DEBUG
+    com.booking: DEBUG 

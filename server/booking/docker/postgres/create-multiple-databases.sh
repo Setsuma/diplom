@@ -1,0 +1,31 @@
+#!/bin/bash
+
+set -e
+set -u
+
+# Настраиваем права для базы keycloak
+echo "Configuring keycloak database"
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" -d keycloak <<-EOSQL
+    CREATE SCHEMA IF NOT EXISTS public;
+    GRANT ALL PRIVILEGES ON SCHEMA public TO $POSTGRES_USER;
+    ALTER DATABASE keycloak OWNER TO $POSTGRES_USER;
+EOSQL
+
+# Функция для создания дополнительных баз данных
+function create_user_and_database() {
+    local database=$1
+    echo "Creating database '$database'"
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" postgres <<-EOSQL
+        CREATE DATABASE $database;
+        GRANT ALL PRIVILEGES ON DATABASE $database TO $POSTGRES_USER;
+EOSQL
+}
+
+# Создаем дополнительные базы данных
+if [ -n "$POSTGRES_MULTIPLE_DATABASES" ]; then
+    echo "Multiple database creation requested: $POSTGRES_MULTIPLE_DATABASES"
+    for db in $(echo $POSTGRES_MULTIPLE_DATABASES | tr ',' ' '); do
+        create_user_and_database $db
+    done
+    echo "Multiple databases created"
+fi 
